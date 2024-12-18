@@ -1,64 +1,87 @@
-import { users } from "./user";
-import { customers } from "./customer";
-import { services } from "./service";
-import { regions } from "./region";
-import { movers } from "./mover";
-import { movingRequest } from "./movingRequest";
 import { PrismaClient } from "@prisma/client";
+import { getUsers } from "./user";
+import { getCustomers } from "./customer";
+import { getMovers } from "./mover";
+import { getMovingRequests } from "./movingRequest";
+import { generateQuotes } from "./quote";
+import { generateConfirmedQuotes } from "./confirmedQuote";
+import { generateReviews } from "./review";
+import { generateNotifications } from "./notification";
+import { generateProfileImages } from "./profileImage";
 
-const prismaClient = new PrismaClient();
+const prisma = new PrismaClient();
 
 async function main() {
-  // 사용자 데이터 시딩
-  await prismaClient.user.deleteMany();
-  await prismaClient.user.createMany({
-    data: users,
-    skipDuplicates: true,
-  });
+  console.log("\uD83C\uDF31 Seeding started...");
 
-  // 고객 데이터 시딩
-  await prismaClient.customer.deleteMany();
-  await prismaClient.customer.createMany({
-    data: customers,
-    skipDuplicates: true,
-  });
+  // 데이터 삭제 순서
+  await prisma.$transaction([
+    prisma.review.deleteMany(),
+    prisma.notification.deleteMany(),
+    prisma.confirmedQuote.deleteMany(),
+    prisma.quote.deleteMany(),
+    prisma.movingRequest.deleteMany(),
+    prisma.customer.deleteMany(),
+    prisma.mover.deleteMany(),
+    prisma.profileImage.deleteMany(),
+    prisma.user.deleteMany(),
+  ]);
 
-  // 기사 데이터 시딩
-  await prismaClient.mover.deleteMany();
-  await prismaClient.mover.createMany({
-    data: movers,
-    skipDuplicates: true,
-  });
+  console.log("✅ All existing data cleared.");
 
-  // 서비스 데이터 시딩
-  await prismaClient.service.deleteMany();
-  await prismaClient.service.createMany({
-    data: services,
-    skipDuplicates: true,
-  });
+  // 데이터 생성 순서
+  const users = await getUsers();
+  await prisma.user.createMany({ data: users });
+  console.log("✅ Users seeded.");
 
-  // 리전 데이터 시딩
-  await prismaClient.region.deleteMany();
-  await prismaClient.region.createMany({
-    data: regions,
-    skipDuplicates: true,
-  });
+  const customers = await getCustomers();
+  await prisma.customer.createMany({ data: customers });
+  console.log("✅ Customers seeded.");
 
-  // 견적 요청 데이터 시딩
-  await prismaClient.movingRequest.deleteMany();
-  await prismaClient.movingRequest.createMany({
-    data: movingRequest,
-    skipDuplicates: true,
-  });
+  const movers = await getMovers();
+  await prisma.mover.createMany({ data: movers });
+  console.log("✅ Movers seeded.");
 
-  console.log("Seeding completed!");
+  const movingRequests = await getMovingRequests();
+  console.log(
+    "Generated MovingRequests:",
+    movingRequests.map((req) => req.id)
+  );
+  await prisma.movingRequest.createMany({ data: movingRequests });
+  console.log("✅ MovingRequests seeded.");
+
+  const quotes = await generateQuotes();
+  console.log(
+    "Generated Quotes:",
+    quotes.map((quote) => quote.movingRequestId)
+  );
+  await prisma.quote.createMany({ data: quotes });
+  console.log("✅ Quotes seeded.");
+
+  const confirmedQuotes = await generateConfirmedQuotes();
+  await prisma.confirmedQuote.createMany({ data: confirmedQuotes });
+  console.log("✅ ConfirmedQuotes seeded.");
+
+  const reviews = await generateReviews();
+  await prisma.review.createMany({ data: reviews });
+  console.log("✅ Reviews seeded.");
+
+  const notifications = await generateNotifications();
+  await prisma.notification.createMany({ data: notifications });
+  console.log("✅ Notifications seeded.");
+
+  const profileImages = await generateProfileImages();
+  await prisma.profileImage.createMany({ data: profileImages });
+  console.log("✅ ProfileImages seeded.");
+
+  console.log("\uD83C\uDF31 Seeding completed!");
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error("\u274C Seeding failed:", e);
     process.exit(1);
   })
   .finally(async () => {
-    await prismaClient.$disconnect();
+    await prisma.$disconnect();
   });

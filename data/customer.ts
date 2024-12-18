@@ -1,42 +1,26 @@
-export const customers = [
-  {
-    id: 1,
-    services: [1, 2],
-    regions: [82031, 82032],
-    createAt: "2024-11-27T10:00:00.000Z",
-    updateAt: "2024-11-27T10:00:00.000Z",
-    userId: 1,
-  },
-  {
-    id: 2,
-    services: [2],
-    regions: [82033, 82044],
-    createAt: "2024-11-27T10:05:00.000Z",
-    updateAt: "2024-11-27T10:05:00.000Z",
-    userId: 2,
-  },
-  {
-    id: 3,
-    services: [1, 3],
-    regions: [82041, 82062],
-    createAt: "2024-11-27T10:10:00.000Z",
-    updateAt: "2024-11-27T10:10:00.000Z",
-    userId: 3,
-  },
-  {
-    id: 4,
-    services: [1],
-    regions: [82032, 82033],
-    createAt: "2024-11-27T10:15:00.000Z",
-    updateAt: "2024-11-27T10:15:00.000Z",
-    userId: 4,
-  },
-  {
-    id: 5,
-    services: [2, 3],
-    regions: [82044, 82061],
-    createAt: "2024-11-27T10:20:00.000Z",
-    updateAt: "2024-11-27T10:20:00.000Z",
-    userId: 5,
-  },
-];
+import { getUsers } from "./user";
+import { getRandomElements } from "./utils";
+import { regions } from "./region";
+import { services } from "./service";
+
+export async function getCustomers() {
+  const users = await getUsers();
+  const customerUsers = users.slice(0, Math.floor(users.length / 2)); // 절반을 Customer로 설정
+
+  return customerUsers.map((user, i) => ({
+    id: i + 1, // 고유 ID
+    userId: user.id,
+    services: getRandomElements(
+      services.map((service) => service.code),
+      1,
+      3
+    ),
+    regions: getRandomElements(
+      regions.map((region) => region.code),
+      1,
+      3
+    ),
+    createAt: new Date(),
+    updateAt: new Date(),
+  }));
+}
