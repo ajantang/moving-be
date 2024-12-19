@@ -3,7 +3,7 @@ import { getRandomInt } from "./utils";
 
 export async function getUsers() {
   return await Promise.all(
-    Array.from({ length: 10 }, async (_, i) => {
+    Array.from({ length: 40 }, async (_, i) => {
       const plainPassword = `Password@123${i + 1}`;
       const hashedPassword = await bcrypt.hash(plainPassword, 10);
 

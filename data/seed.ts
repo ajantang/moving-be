@@ -8,6 +8,8 @@ import { generateConfirmedQuotes } from "./confirmedQuote";
 import { generateReviews } from "./review";
 import { generateNotifications } from "./notification";
 import { generateProfileImages } from "./profileImage";
+import { config } from "dotenv";
+config();
 
 const prisma = new PrismaClient();
 

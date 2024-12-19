@@ -3,6 +3,7 @@ declare namespace NodeJS {
   interface ProcessEnv {
     JWT_SECRET: string;
     POSTGRES_DATABASE_URL: string;
+    DATABASE_URL: string;
     PORT: string;
     AWS_ACCESS_KEY_ID: string;
     AWS_REGION: string;

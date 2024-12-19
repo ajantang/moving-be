@@ -20,7 +20,7 @@ export async function getMovingRequests() {
       return {
         id: i * 3 + index + 1,
         customerId: customer.id,
-        service: getRandomInt(0, services.length - 1),
+        service: getRandomInt(1, 3),
         movingDate,
         pickupAddress: `서울시 출발지 ${i + 1}-${index + 1}`,
         dropOffAddress: `경기도 도착지 ${i + 1}-${index + 1}`,
