@@ -14,6 +14,8 @@ router.get(
   asyncHandle(async (req, res, next) => {
     try {
       // const { moverId } = req.user as { moverId: number };
+
+      console.log("이사요청 목록 조회 /my-mover ");
       const moverId = 1;
       const {
         limit = "10",
@@ -33,7 +35,7 @@ router.get(
       const parseHouseMove = checkBoolean(houseMove as string);
       const parseOfficeMove = checkBoolean(officeMove as string);
       const parseIsQuoted = checkBoolean(isQuoted as string);
-
+      console.log("이사요청 목록 조회 /my-mover 1");
       const movingRequestList =
         await movingRequestService.getMovingRequestListByMover(moverId, {
           limit: parseLimit,
@@ -46,8 +48,10 @@ router.get(
           orderBy: orderBy as string,
           isQuoted: parseIsQuoted || false,
         });
+      console.log("이사요청 목록 조회 /my-mover 2");
       return res.status(200).send(movingRequestList);
     } catch (error) {
+      console.log("이사요청 목록 조회 /my-mover error");
       next(error);
     }
   })
