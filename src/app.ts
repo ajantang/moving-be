@@ -27,28 +27,33 @@ const allowedOrigins: string[] = [
   "http://localhost:3000",
 ];
 // CORS 설정
-const corsOptions: CorsOptions = {
-  credentials: true,
-  origin: function (
-    origin: string | undefined,
-    callback: (err: Error | null, origin?: string) => void
-  ) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, origin); // 허용
-    } else {
-      callback(new Error("Not allowed by CORS")); // 허용하지 않음
-    }
-  },
-  exposedHeaders: ["set-cookie"],
-};
+// const corsOptions: CorsOptions = {
+//   credentials: true,
+//   origin: function (
+//     origin: string | undefined,
+//     callback: (err: Error | null, origin?: string) => void
+//   ) {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, origin); // 허용
+//     } else {
+//       callback(new Error("Not allowed by CORS")); // 허용하지 않음
+//     }
+//   },
+//   exposedHeaders: ["set-cookie"],
+// };
 
 // Express app에 CORS 적용
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: "http://localhost:3000",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // 허용할 HTTP 메서드
+  allowedHeaders: ["Content-Type", "Authorization"], // 허용할 헤더
+};
+
+app.use(cors(corsOptions));
+
+// OPTIONS 요청 처리
+app.options("*", cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 
 //미들웨어
