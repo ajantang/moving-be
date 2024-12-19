@@ -23,7 +23,7 @@ export const authenticate = (
   next: NextFunction
 ) => {
   // req를 AuthenticatedRequest로 타입 단언(type assertion)
-  (req as AuthenticatedRequest).user = { id: 1 };
+  (req as AuthenticatedRequest).user = { id: 6 };
   next();
 };
 
