@@ -128,6 +128,78 @@ const setOrderBy = (orderBy: string) => {
 };
 
 //이사요청 목록 조회
+// const getMovingRequestListByMover = async (
+//   moverId: number,
+//   query: queryString
+// ) => {
+//   const { limit, cursor, orderBy } = query;
+//   const whereCondition: WhereCondition = setWhereCondition(query, moverId);
+//   const orderByQuery = setOrderBy(orderBy);
+
+//   const serviceCountsPromise =
+//     movingRequestRepository.getMovingRequestCountByServices(whereCondition);
+
+//   const totalCountPromise =
+//     movingRequestRepository.getTotalCount(whereCondition);
+//   const designatedCountPromise =
+//     movingRequestRepository.getMovingRequestCountByDesignated(
+//       whereCondition,
+//       moverId
+//     );
+
+//   const movingRequestListPromise = movingRequestRepository.getMovingRequestList(
+//     { limit, cursor, orderBy: orderByQuery },
+//     whereCondition
+//   );
+
+//   const [movingRequestList, serviceCounts, totalCount, designatedCount] =
+//     await Promise.all([
+//       movingRequestListPromise,
+//       serviceCountsPromise,
+//       totalCountPromise,
+//       designatedCountPromise,
+//     ]);
+
+//   if (!movingRequestList) {
+//     const error: CustomError = new Error("Not Found");
+//     error.status = 404;
+//     error.message = "Not Found";
+//     error.data = {
+//       message: "이사요청 목록이 없습니다.",
+//     };
+//     throw error;
+//   }
+
+//   //커서 설정
+//   const nextCursor =
+//     movingRequestList.length > limit ? movingRequestList[limit - 1].id : "";
+//   const hasNext = Boolean(nextCursor); //다음 페이지가 있는지 여부
+
+//   //데이터 가공
+//   const resMovingRequestList = movingRequestList.map((movingRequest) => {
+//     const { _count, customer, createAt, confirmedQuote, ...rest } =
+//       movingRequest;
+
+//     return {
+//       ...rest,
+//       requestDate: createAt,
+//       isConfirmed: Boolean(confirmedQuote), //완료된 견적서와 관계가 있다면 true
+//       name: customer.user.name,
+//       isDesignated: Boolean(_count.mover), //관계가 있다면 true
+//     };
+//   });
+
+//   return {
+//     nextCursor, //다음 페이지 커서
+//     hasNext, //다음 페이지 존재 여부
+//     serviceCounts, //서비스별 이사요청 수
+//     requestCounts: {
+//       total: totalCount, //총 이사요청 수
+//       designated: designatedCount, //지정 이사요청 수
+//     },
+//     list: resMovingRequestList.slice(0, limit), //이사요청 목록
+//   };
+// };
 const getMovingRequestListByMover = async (
   moverId: number,
   query: queryString
@@ -136,31 +208,22 @@ const getMovingRequestListByMover = async (
   const whereCondition: WhereCondition = setWhereCondition(query, moverId);
   const orderByQuery = setOrderBy(orderBy);
 
-  const serviceCountsPromise =
-    movingRequestRepository.getMovingRequestCountByServices(whereCondition);
-
-  const totalCountPromise =
-    movingRequestRepository.getTotalCount(whereCondition);
-  const designatedCountPromise =
-    movingRequestRepository.getMovingRequestCountByDesignated(
-      whereCondition,
-      moverId
-    );
-
-  const movingRequestListPromise = movingRequestRepository.getMovingRequestList(
-    { limit, cursor, orderBy: orderByQuery },
-    whereCondition
-  );
-
-  const [movingRequestList, serviceCounts, totalCount, designatedCount] =
+  // 병렬 처리로 데이터 가져오기
+  const [serviceCounts, totalCount, designatedCount, movingRequestList] =
     await Promise.all([
-      movingRequestListPromise,
-      serviceCountsPromise,
-      totalCountPromise,
-      designatedCountPromise,
+      movingRequestRepository.getMovingRequestCountByServices(whereCondition),
+      movingRequestRepository.getTotalCount(whereCondition),
+      movingRequestRepository.getMovingRequestCountByDesignated(
+        whereCondition,
+        moverId
+      ),
+      movingRequestRepository.getMovingRequestList(
+        { limit: limit + 1, cursor, orderBy: orderByQuery }, // limit + 1로 수정
+        whereCondition
+      ),
     ]);
 
-  if (!movingRequestList) {
+  if (!movingRequestList || movingRequestList.length === 0) {
     const error: CustomError = new Error("Not Found");
     error.status = 404;
     error.message = "Not Found";
@@ -170,34 +233,35 @@ const getMovingRequestListByMover = async (
     throw error;
   }
 
-  //커서 설정
-  const nextCursor =
-    movingRequestList.length > limit ? movingRequestList[limit - 1].id : "";
-  const hasNext = Boolean(nextCursor); //다음 페이지가 있는지 여부
+  // 커서 설정
+  const hasNext = movingRequestList.length > limit;
+  const nextCursor = hasNext ? movingRequestList[limit].id : "";
 
-  //데이터 가공
-  const resMovingRequestList = movingRequestList.map((movingRequest) => {
-    const { _count, customer, createAt, confirmedQuote, ...rest } =
-      movingRequest;
+  // 데이터 가공
+  const resMovingRequestList = movingRequestList
+    .slice(0, limit) // limit 개수만 반환
+    .map((movingRequest) => {
+      const { _count, customer, createAt, confirmedQuote, ...rest } =
+        movingRequest;
 
-    return {
-      ...rest,
-      requestDate: createAt,
-      isConfirmed: Boolean(confirmedQuote), //완료된 견적서와 관계가 있다면 true
-      name: customer.user.name,
-      isDesignated: Boolean(_count.mover), //관계가 있다면 true
-    };
-  });
+      return {
+        ...rest,
+        requestDate: createAt,
+        isConfirmed: Boolean(confirmedQuote), // 완료된 견적서와 관계가 있다면 true
+        name: customer.user.name,
+        isDesignated: Boolean(_count.mover), // 관계가 있다면 true
+      };
+    });
 
   return {
-    nextCursor, //다음 페이지 커서
-    hasNext, //다음 페이지 존재 여부
-    serviceCounts, //서비스별 이사요청 수
+    nextCursor, // 다음 페이지 커서
+    hasNext, // 다음 페이지 존재 여부
+    serviceCounts, // 서비스별 이사요청 수
     requestCounts: {
-      total: totalCount, //총 이사요청 수
-      designated: designatedCount, //지정 이사요청 수
+      total: totalCount, // 총 이사요청 수
+      designated: designatedCount, // 지정 이사요청 수
     },
-    list: resMovingRequestList.slice(0, limit), //이사요청 목록
+    list: resMovingRequestList, // 이사요청 목록
   };
 };
 
