@@ -46,12 +46,13 @@ const allowedOrigins: string[] = [
 const corsOptions = {
   origin: "http://localhost:3000",
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // 허용할 HTTP 메서드
+  allowedHeaders: ["Content-Type", "Authorization"], // 허용할 헤더
 };
 
-// OPTIONS 요청 처리
 app.use(cors(corsOptions));
+
+// OPTIONS 요청 처리
 app.options("*", cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 
