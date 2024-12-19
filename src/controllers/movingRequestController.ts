@@ -10,11 +10,11 @@ const router = express.Router();
 //이사요청 목록 조회
 router.get(
   "/my-mover",
-  passport.authenticate("jwt", { session: false }),
+  // passport.authenticate("jwt", { session: false }),
   asyncHandle(async (req, res, next) => {
     try {
-      const { moverId } = req.user as { moverId: number };
-
+      // const { moverId } = req.user as { moverId: number };
+      const moverId = 1;
       const {
         limit = "10",
         isDesignated = "",

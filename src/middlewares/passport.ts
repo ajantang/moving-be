@@ -14,6 +14,8 @@ import jwt from "jsonwebtoken";
 passport.use(
   "jwt",
   new Strategy(async (req, done) => {
+    return done(null);
+
     const token = req.cookies["accessToken"];
 
     if (!token) {

@@ -22,7 +22,10 @@ import { initNotification } from "./schedules/notifications";
 const app = express();
 
 //CORS 설정
-const allowedOrigins: string[] = ["http://localhost:3001"];
+const allowedOrigins: string[] = [
+  "http://localhost:3001",
+  "http://localhost:3000",
+];
 // CORS 설정
 const corsOptions: CorsOptions = {
   credentials: true,
@@ -40,7 +43,7 @@ const corsOptions: CorsOptions = {
 };
 
 // Express app에 CORS 적용
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
 //미들웨어
