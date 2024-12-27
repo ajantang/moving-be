@@ -1,99 +1,133 @@
-import { users } from "./user";
-import { customers } from "./customer";
-import { services } from "./service";
-import { regions } from "./region";
-import { movers } from "./mover";
-import { quote } from "./quote";
-import { confirmedQuote } from "./confirmedQuote";
-import { movingRequest } from "./movingRequest";
 import { PrismaClient } from "@prisma/client";
+import { getUsers } from "./user";
+import { getCustomers } from "./customer";
+import { getMovers } from "./mover";
+import { getMovingRequests } from "./movingRequest";
+import { generateQuotes } from "./quote";
+import { generateConfirmedQuotes } from "./confirmedQuote";
+import { generateReviews } from "./review";
+import { generateNotifications } from "./notification";
+import { generateProfileImages } from "./profileImage";
+import { config } from "dotenv";
+config();
 
-const prismaClient = new PrismaClient();
+const prisma = new PrismaClient();
 
 async function main() {
-  try {
-    // 1. 기존 데이터 삭제 및 시퀀스 초기화
-    await prismaClient.$executeRaw`TRUNCATE TABLE "Review" RESTART IDENTITY CASCADE;`;
-    await prismaClient.$executeRaw`TRUNCATE TABLE "ConfirmedQuote" RESTART IDENTITY CASCADE;`;
-    await prismaClient.$executeRaw`TRUNCATE TABLE "Quote" RESTART IDENTITY CASCADE;`;
-    await prismaClient.$executeRaw`TRUNCATE TABLE "MovingRequest" RESTART IDENTITY CASCADE;`;
-    await prismaClient.$executeRaw`TRUNCATE TABLE "Mover" RESTART IDENTITY CASCADE;`;
-    await prismaClient.$executeRaw`TRUNCATE TABLE "Customer" RESTART IDENTITY CASCADE;`;
-    await prismaClient.$executeRaw`TRUNCATE TABLE "Service" RESTART IDENTITY CASCADE;`;
-    await prismaClient.$executeRaw`TRUNCATE TABLE "Region" RESTART IDENTITY CASCADE;`;
-    await prismaClient.$executeRaw`TRUNCATE TABLE "User" RESTART IDENTITY CASCADE;`;
+  console.log("\uD83C\uDF31 Seeding started...");
 
-    // 2. User 데이터 생성 및 확인
-    console.log("Creating users...");
-    const createdUsers = await prismaClient.user.createMany({
-      data: users,
-      skipDuplicates: true,
-    });
-    console.log("Created users count:", createdUsers.count);
+  // 데이터 삭제 순서
+  await prisma.$transaction([
+    prisma.review.deleteMany(),
+    prisma.notification.deleteMany(),
+    prisma.confirmedQuote.deleteMany(),
+    prisma.quote.deleteMany(),
+    prisma.movingRequest.deleteMany(),
+    prisma.customer.deleteMany(),
+    prisma.mover.deleteMany(),
+    prisma.profileImage.deleteMany(),
+    prisma.user.deleteMany(),
+  ]);
 
-    // User 데이터 확인
-    const userCount = await prismaClient.user.count();
-    console.log("Total users in database:", userCount);
+  console.log("✅ All existing data cleared.");
 
-    // 3. 기본 테이블 데이터 생성
-    console.log("Creating services...");
-    await prismaClient.service.createMany({
-      data: services,
-      skipDuplicates: true,
-    });
+  // 데이터 생성 순서
+  const users = await getUsers();
+  await prisma.user.createMany({ data: users });
+  console.log("✅ Users seeded.");
 
-    console.log("Creating regions...");
-    await prismaClient.region.createMany({
-      data: regions,
-      skipDuplicates: true,
-    });
+  const customers = await getCustomers();
+  await prisma.customer.createMany({ data: customers });
+  console.log("✅ Customers seeded.");
 
-    // 4. User 테이블을 참조하는 테이블 데이터 생성
-    console.log("Creating customers...");
-    await prismaClient.customer.createMany({
-      data: customers,
-      // skipDuplicates: true,
-    });
+  const movers = await getMovers();
+  await prisma.mover.createMany({ data: movers });
+  console.log("✅ Movers seeded.");
 
-    console.log("Creating movers...");
-    await prismaClient.mover.createMany({
-      data: movers,
-      skipDuplicates: true,
-    });
+  const movingRequests = await getMovingRequests();
+  console.log(
+    "Generated MovingRequests:",
+    movingRequests.map((req) => req.id)
+  );
+  await prisma.movingRequest.createMany({ data: movingRequests });
+  console.log("✅ MovingRequests seeded.");
 
-    // 5. Customer를 참조하는 MovingRequest 데이터 생성
-    console.log("Creating moving requests...");
-    await prismaClient.movingRequest.createMany({
-      data: movingRequest,
-      skipDuplicates: true,
-    });
+  const quotes = await generateQuotes();
+  console.log(
+    "Generated Quotes:",
+    quotes.map((quote) => quote.movingRequestId)
+  );
+  await prisma.quote.createMany({ data: quotes });
+  console.log("✅ Quotes seeded.");
 
-    // 6. MovingRequest와 Mover를 참조하는 Quote 데이터 생성
-    console.log("Creating quotes...");
-    await prismaClient.quote.createMany({
-      data: quote,
-      skipDuplicates: true,
-    });
+  const confirmedQuotes = await generateConfirmedQuotes();
+  await prisma.confirmedQuote.createMany({ data: confirmedQuotes });
+  console.log("✅ ConfirmedQuotes seeded.");
 
-    // 7. Quote를 참조하는 ConfirmedQuote 데이터 생성
-    console.log("Creating confirmed quotes...");
-    await prismaClient.confirmedQuote.createMany({
-      data: confirmedQuote,
-      skipDuplicates: true,
-    });
+  const reviews = await generateReviews();
+  await prisma.review.createMany({ data: reviews });
+  console.log("✅ Reviews seeded.");
 
-    console.log("Seeding completed!");
-  } catch (error) {
-    console.error("Detailed error:", error);
-    throw error;
-  }
+  const notifications = await generateNotifications();
+  await prisma.notification.createMany({ data: notifications });
+  console.log("✅ Notifications seeded.");
+
+  const profileImages = await generateProfileImages();
+  await prisma.profileImage.createMany({ data: profileImages });
+  console.log("✅ ProfileImages seeded.");
+
+  console.log("\uD83C\uDF31 Seeding completed!");
+
+  // // 견적 요청 데이터 삭제 (가장 먼저 삭제)
+  // await prismaClient.movingRequest.deleteMany();
+
+  // // 기사, 고객, 서비스, 리전 데이터 삭제
+  // await prismaClient.mover.deleteMany();
+  // await prismaClient.customer.deleteMany();
+  // await prismaClient.service.deleteMany();
+  // await prismaClient.region.deleteMany();
+
+  // // 사용자 데이터 삭제 (마지막에 삭제)
+  // await prismaClient.user.deleteMany();
+
+  // // 사용자 데이터 시딩
+  // await prismaClient.user.createMany({
+  //   data: users,
+  //   skipDuplicates: true,
+  // });
+
+  // // 고객 데이터 시딩
+  // await prismaClient.customer.createMany({
+  //   data: customers,
+  //   skipDuplicates: true,
+  // });
+
+  // // 기사 데이터 시딩
+  // await prismaClient.mover.createMany({
+  //   data: movers,
+  //   skipDuplicates: true,
+  // });
+
+  // // 서비스 데이터 시딩
+  // await prismaClient.service.createMany({
+  //   data: services,
+  //   skipDuplicates: true,
+  // });
+
+  // // 리전 데이터 시딩
+  // await prismaClient.region.createMany({
+  //   data: regions,
+  //   skipDuplicates: true,
+  // });
+
+  // console.log("Seeding completed!");
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error("\u274C Seeding failed:", e);
     process.exit(1);
   })
   .finally(async () => {
-    await prismaClient.$disconnect();
+    await prisma.$disconnect();
   });

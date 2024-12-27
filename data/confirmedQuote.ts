@@ -1,65 +1,30 @@
-export const confirmedQuote = [
-  {
-    id: 1,
-    movingRequestId: 3,
-    quoteId: 52,
-    customerId: 1,
-    moverId: 15,
-    createAt: "2024-12-23T00:00:00Z",
-    updateAt: "2024-12-23T00:00:00Z",
-  },
-  {
-    id: 2,
-    movingRequestId: 31,
-    quoteId: 46,
-    customerId: 1,
-    moverId: 3,
-    createAt: "2024-12-23T00:00:00Z",
-    updateAt: "2024-12-23T00:00:00Z",
-  },
-  {
-    id: 3,
-    movingRequestId: 32,
-    quoteId: 47,
-    customerId: 1,
-    moverId: 5,
-    createAt: "2024-12-23T00:00:00Z",
-    updateAt: "2024-12-23T00:00:00Z",
-  },
-  {
-    id: 4,
-    movingRequestId: 33,
-    quoteId: 48,
-    customerId: 1,
-    moverId: 7,
-    createAt: "2024-12-23T00:00:00Z",
-    updateAt: "2024-12-23T00:00:00Z",
-  },
-  {
-    id: 5,
-    movingRequestId: 34,
-    quoteId: 49,
-    customerId: 1,
-    moverId: 9,
-    createAt: "2024-12-23T00:00:00Z",
-    updateAt: "2024-12-23T00:00:00Z",
-  },
-  {
-    id: 6,
-    movingRequestId: 1,
-    quoteId: 50,
-    customerId: 1,
-    moverId: 11,
-    createAt: "2024-12-23T00:00:00Z",
-    updateAt: "2024-12-23T00:00:00Z",
-  },
-  {
-    id: 7,
-    movingRequestId: 2,
-    quoteId: 51,
-    customerId: 1,
-    moverId: 13,
-    createAt: "2024-12-23T00:00:00Z",
-    updateAt: "2024-12-23T00:00:00Z",
-  },
-];
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+export async function generateConfirmedQuotes() {
+  const quotes = await prisma.quote.findMany({
+    include: {
+      movingRequest: true, // MovingRequest 테이블의 데이터 포함
+    },
+  }); // 실제 Quote 데이터 가져오기
+
+  // MovingRequest별로 하나의 Quote를 선택해 ConfirmedQuote 생성
+  const confirmedQuotes = Object.values(
+    quotes.reduce((acc, quote) => {
+      if (!acc[quote.movingRequestId]) {
+        acc[quote.movingRequestId] = quote; // 첫 번째 Quote만 선택
+      }
+      return acc;
+    }, {} as Record<number, (typeof quotes)[0]>)
+  ).map((quote) => ({
+    movingRequestId: quote.movingRequestId,
+    quoteId: quote.id,
+    customerId: quote.movingRequest.customerId, // Quote와 연결된 Customer
+    moverId: quote.moverId,
+    createAt: new Date(),
+    updateAt: new Date(),
+  }));
+
+  return confirmedQuotes;
+}
