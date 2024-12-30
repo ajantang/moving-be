@@ -65,6 +65,70 @@ router.get(
   })
 );
 
+// (기사님이) 반려한 이사 요청 목록 조회
+router.get(
+  "/mover/rejected",
+  passport.authenticate("jwt", { session: false }),
+  asyncHandle(async (req, res, next) => {
+    const user = req.user as any;
+    const moverId = user.moverId;
+
+    // moverId 유효성 검사
+    if (!moverId) {
+      const error: customError = new Error("Bad Request");
+      error.status = 400;
+      error.message = "Bad Request";
+      error.data = {
+        message: "기사 ID가 필요합니다.",
+      };
+      throw error;
+    }
+
+    // 쿼리 파라미터 처리 (페이지네이션)
+    const limit = parseInt(req.query.limit as string) || 10;
+    const nextCursorId = req.query.nextCursorId
+      ? Number(req.query.nextCursorId)
+      : null;
+
+    // 서비스 호출
+    const result = await quoteService.getRejectedRequestList(moverId, {
+      limit,
+      cursor: nextCursorId,
+    });
+
+    // 응답
+    res.status(200).send(result);
+  })
+);
+
+// (기사님의) 지정이사 요청 반려
+router.post(
+  "/mover/:movingRequestId/reject",
+  passport.authenticate("jwt", { session: false }),
+  asyncHandle(async (req, res, next) => {
+    const user = req.user as any;
+    const moverId = user.moverId;
+    const movingRequestId = parseInt(req.params.movingRequestId);
+
+    // 파라미터 검증 후에 서비스를 호출하고 응답을 보내는 부분이 없어요!
+    if (!movingRequestId) {
+      const error: customError = new Error("Bad Request");
+      error.status = 400;
+      error.message = "Bad Request";
+      error.data = {
+        message: "이사 요청 ID가 필요합니다.",
+      };
+      throw error;
+    }
+
+    // 서비스 호출 추가
+    const result = await quoteService.rejectRequest(moverId, movingRequestId);
+
+    // 응답 추가
+    res.status(200).send(result);
+  })
+);
+
 // (기사님이 작성한)특정 견적서 상세 조회
 router.get(
   "/mover/:quoteId",
@@ -99,70 +163,6 @@ router.get(
     const quote = await quoteService.getQuoteDetail(moverId, quoteId, cost);
 
     return res.status(200).send(quote);
-  })
-);
-
-// (기사님의) 지정이사 요청 반려
-router.post(
-  "/mover/:movingRequestId/reject",
-  passport.authenticate("jwt", { session: false }),
-  asyncHandle(async (req, res, next) => {
-    const user = req.user as any;
-    const moverId = user.moverId;
-    const movingRequestId = parseInt(req.params.movingRequestId);
-
-    // 파라미터 검증 후에 서비스를 호출하고 응답을 보내는 부분이 없어요!
-    if (!movingRequestId) {
-      const error: customError = new Error("Bad Request");
-      error.status = 400;
-      error.message = "Bad Request";
-      error.data = {
-        message: "이사 요청 ID가 필요합니다.",
-      };
-      throw error;
-    }
-
-    // 서비스 호출 추가
-    const result = await quoteService.rejectRequest(moverId, movingRequestId);
-
-    // 응답 추가
-    res.status(200).send(result);
-  })
-);
-
-// (기사님이) 반려한 이사 요청 목록 조회
-router.get(
-  "/mover/rejected",
-  passport.authenticate("jwt", { session: false }),
-  asyncHandle(async (req, res, next) => {
-    const user = req.user as any;
-    const moverId = user.moverId;
-
-    // moverId 유효성 검사
-    if (!moverId) {
-      const error: customError = new Error("Bad Request");
-      error.status = 400;
-      error.message = "Bad Request";
-      error.data = {
-        message: "기사 ID가 필요합니다.",
-      };
-      throw error;
-    }
-
-    // 쿼리 파라미터 처리 (페이지네이션)
-    const limit = parseInt(req.query.limit as string) || 10;
-    const nextCursorId = req.query.nextCursorId
-      ? Number(req.query.nextCursorId)
-      : null;
-
-    // 서비스 호출
-    const result = await quoteService.getRejectedRequestList(moverId, {
-      limit,
-      cursor: nextCursorId,
-    });
-
-    // 응답
-    res.status(200).send(result);
   })
 );
 

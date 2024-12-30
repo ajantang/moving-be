@@ -79,9 +79,12 @@ const existingUser = (email: string, phoneNumber: string) => {
   });
 };
 
-const createUser = (user: User) => {
+const createUser = (user: User, userType: string) => {
   return prismaClient.user.create({
-    data: user,
+    data: {
+      ...user,
+      userType: userType,
+    },
   });
 };
 

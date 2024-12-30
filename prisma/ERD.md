@@ -15,6 +15,7 @@ erDiagram
   Boolean isOAuth
   DateTime createAt
   DateTime updateAt
+  String userType
 }
 "Customer" {
   Int id PK
@@ -162,6 +163,7 @@ erDiagram
   - `isOAuth`: 
   - `createAt`: 
   - `updateAt`: 
+  - `userType`: 
 
 ### `Customer`
 

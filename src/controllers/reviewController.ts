@@ -3,6 +3,7 @@ import passport from "passport";
 import { asyncHandle } from "../utils/asyncHandler";
 import reviewService from "../services/reviewService";
 import customError from "../utils/interfaces/customError";
+import { ReviewCreateData, ReviewQuery } from "../utils/review/types";
 
 const router = Router();
 
@@ -63,9 +64,10 @@ router.post(
       throw error;
     }
 
-    const { confirmedQuoteId, moverId, rating, content, imageUrl } = req.body;
+    const { confirmedQuoteId, rating, content, imageUrl } = req.body; // moverId 제거
 
-    if (!confirmedQuoteId || !moverId || !rating) {
+    if (!confirmedQuoteId || !rating) {
+      // moverId 체크 제거
       const error: customError = new Error("Bad Request");
       error.status = 400;
       error.message = "필수 항목이 누락되었습니다.";
@@ -74,7 +76,6 @@ router.post(
 
     const result = await reviewService.createNewReview(customerId, {
       confirmedQuoteId,
-      moverId,
       rating,
       content,
       imageUrl,
@@ -106,8 +107,13 @@ router.get(
       pageNum: pageNum ? parseInt(pageNum as string) : undefined,
     });
 
+    console.log(result);
     res.status(200).send(result);
   })
 );
 
 export default router;
+
+
+
+

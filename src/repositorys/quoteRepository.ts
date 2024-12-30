@@ -100,6 +100,7 @@ const getQuoteById = (quoteId: number) => {
           movingDate: true,
           pickupAddress: true,
           dropOffAddress: true,
+          isDesignated: true,
           confirmedQuote: {
             select: {
               id: true,
@@ -234,11 +235,7 @@ const getQuoteListByMoverId = (moverId: number, options: PaginationOptions) => {
 };
 
 //(기사님이 작성한)견적서 상세 조회
-const getQuoteDetailByMoverId = (
-  moverId: number,
-  quoteId: number,
-  cost: number
-) => {
+const getQuoteDetailByMoverId = (moverId: number, quoteId: number) => {
   if (!moverId) {
     throw new Error("기사 ID가 필요합니다.");
   }
@@ -246,12 +243,13 @@ const getQuoteDetailByMoverId = (
   return prismaClient.quote.findFirst({
     // findUnique 대신 findFirst 사용
     where: {
-      AND: [{ id: quoteId }, { moverId }, { cost }],
+      AND: [{ id: quoteId }, { moverId }],
     },
     select: {
       id: true,
       cost: true,
       comment: true,
+      createAt: true,
       movingRequest: {
         select: {
           service: true,

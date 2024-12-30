@@ -9,7 +9,7 @@ passport.deserializeUser((user: any, done) => {
   done(null, user);
 });
 
-const naver = async (profile: any) => {
+const naver = async (profile: any, userType: string) => {
   try {
     const existingUser = await userRepository.findByEmail(
       profile.emails?.[0].value
@@ -19,13 +19,16 @@ const naver = async (profile: any) => {
       return existingUser;
     }
 
-    const newUser = await userRepository.createUser({
-      email: profile.emails?.[0].value!,
-      name: "Unknown",
-      phoneNumber: null,
-      password: null,
-      isOAuth: true,
-    });
+    const newUser = await userRepository.createUser(
+      {
+        email: profile.emails?.[0].value!,
+        name: "Unknown",
+        phoneNumber: null,
+        password: null,
+        isOAuth: true,
+      },
+      userType
+    );
 
     return newUser;
   } catch (error) {
@@ -33,7 +36,7 @@ const naver = async (profile: any) => {
   }
 };
 
-const kakao = async (profile: any) => {
+const kakao = async (profile: any, userType: string) => {
   try {
     const existingUser = await userRepository.findByEmail(
       profile._json.kakao_account.email
@@ -43,13 +46,16 @@ const kakao = async (profile: any) => {
       return existingUser;
     }
 
-    const newUser = await userRepository.createUser({
-      email: profile._json.kakao_account.email,
-      name: "Unknown",
-      phoneNumber: null,
-      password: null,
-      isOAuth: true,
-    });
+    const newUser = await userRepository.createUser(
+      {
+        email: profile._json.kakao_account.email,
+        name: "Unknown",
+        phoneNumber: null,
+        password: null,
+        isOAuth: true,
+      },
+      userType
+    );
 
     return newUser;
   } catch (error) {
@@ -57,7 +63,7 @@ const kakao = async (profile: any) => {
   }
 };
 
-const google = async (profile: any) => {
+const google = async (profile: any, userType: string) => {
   try {
     const existingUser = await userRepository.findByEmail(
       profile.emails?.[0].value
@@ -67,13 +73,16 @@ const google = async (profile: any) => {
       return existingUser;
     }
 
-    const newUser = await userRepository.createUser({
-      email: profile.emails?.[0].value!,
-      name: "Unknown",
-      phoneNumber: null,
-      password: null,
-      isOAuth: true,
-    });
+    const newUser = await userRepository.createUser(
+      {
+        email: profile.emails?.[0].value!,
+        name: "Unknown",
+        phoneNumber: null,
+        password: null,
+        isOAuth: true,
+      },
+      userType
+    );
 
     return newUser;
   } catch (error) {

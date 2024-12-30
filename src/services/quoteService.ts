@@ -69,7 +69,7 @@ const createQuote = async (
   };
 };
 
-// (기사님이 작성한) 견적서 목록을 조회하는 함수입니다.
+// (기사님이 작성한) 견적서 목록 조회
 const getQuoteList = async (moverId: number, query: QuoteQueryString) => {
   // moverId 유효성 검사
   if (!moverId) {
@@ -119,18 +119,14 @@ const getQuoteList = async (moverId: number, query: QuoteQueryString) => {
   };
 };
 
-// (기사님이 작성한) 견적서 상세 정보를 조회하는 함수입니다.
+// (기사님이 작성한) 견적서 상세 조회
 const getQuoteDetail = async (
   moverId: number,
   quoteId: number,
   cost: number
 ) => {
   // 1. 견적서가 존재하는지 확인합니다.
-  const quote = await quoteRepository.getQuoteDetailByMoverId(
-    moverId,
-    quoteId,
-    cost
-  );
+  const quote = await quoteRepository.getQuoteDetailByMoverId(moverId, quoteId);
 
   if (!quote) {
     const error: customError = new Error("Not Found");
@@ -153,6 +149,7 @@ const getQuoteDetail = async (
     pickupAddress: quote.movingRequest.pickupAddress,
     dropOffAddress: quote.movingRequest.dropOffAddress,
     isDesignated: quote.movingRequest.isDesignated,
+    requestDate: quote.createAt, // 추가: 요청일자 추가
   };
 };
 
@@ -227,6 +224,7 @@ const getRejectedRequestList = async (
       movingDate: movingRequest.movingDate,
       pickupAddress: movingRequest.pickupAddress,
       dropOffAddress: movingRequest.dropOffAddress,
+      requestDate: movingRequest.createAt, // 추가: 요청일자 추가
     })),
   };
 };

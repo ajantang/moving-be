@@ -32,6 +32,7 @@ model User {
   notification notification[]
   mover        Mover?         @relation
   customer     Customer?      @relation
+  userType     String         @default("customer") // customer | mover
 }
 
 // 일반 고객 프로필

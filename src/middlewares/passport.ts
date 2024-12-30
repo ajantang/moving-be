@@ -99,15 +99,18 @@ passport.use(
       clientID: NAVER_CLIENT_ID!,
       clientSecret: NAVER_CLIENT_SECRET!,
       callbackURL: NAVER_REDIRECT_URI!,
+      passReqToCallback: true,
     },
     async (
+      req: any,
       accessToken: string,
       refreshToken: string,
       profile: any,
       done: (error: any, user?: any) => void
     ) => {
       try {
-        const result = await oauthService.naver(profile);
+        const userType = req.query.state as string;
+        const result = await oauthService.naver(profile, userType);
         return done(null, result);
       } catch (error) {
         return done(error as Error);
@@ -123,10 +126,12 @@ passport.use(
       clientID: KAKAO_CLIENT_ID!,
       clientSecret: KAKAO_CLIENT_SECRET!,
       callbackURL: KAKAO_CALLBACK_URL!,
+      passReqToCallback: true,
     },
-    async (accessToken, refreshToken, profile, done) => {
+    async (req: any, accessToken, refreshToken, profile, done) => {
       try {
-        const result = await oauthService.kakao(profile);
+        const userType = req.query.state as string;
+        const result = await oauthService.kakao(profile, userType);
         return done(null, result);
       } catch (error) {
         return done(error as Error);
@@ -142,10 +147,12 @@ passport.use(
       clientID: GOOGLE_CLIENT_ID!,
       clientSecret: GOOGLE_CLIENT_SECRET!,
       callbackURL: GOOGLE_CALLBACK_URL!,
+      passReqToCallback: true,
     },
-    async (accessToken, refreshToken, profile, done) => {
+    async (req: any, accessToken, refreshToken, profile, done) => {
       try {
-        const result = await oauthService.google(profile);
+        const userType = req.query.state as string;
+        const result = await oauthService.google(profile, userType);
         return done(null, result);
       } catch (error) {
         return done(error as Error);

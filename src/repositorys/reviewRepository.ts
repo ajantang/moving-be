@@ -48,6 +48,12 @@ const getMyReviewList = (customerId: number, { pageSize = 6, pageNum = 1 }) => {
       rating: true,
       content: true,
       createAt: true,
+      imageUrl: true,
+      mover: {
+        select: {
+          nickname: true,
+        },
+      },
       confirmedQuote: {
         select: {
           movingRequest: {
@@ -64,31 +70,39 @@ const getMyReviewList = (customerId: number, { pageSize = 6, pageNum = 1 }) => {
           },
         },
       },
-      mover: {
-        select: {
-          imageUrl: true,
-          nickname: true,
-        },
-      },
     },
     orderBy: { createAt: "desc" },
   });
 };
 
-// (고객의)리뷰 생성하기
-const createReview = (
+const createReview = async (
   confirmedQuoteId: number,
   customerId: number,
-  moverId: number,
   rating: number,
   content: string,
   imageUrl?: string[]
 ) => {
+  // 먼저 confirmedQuote와 연관된 moverId를 조회
+  const confirmedQuote = await prismaClient.confirmedQuote.findUnique({
+    where: { id: confirmedQuoteId },
+    select: {
+      quote: {
+        select: {
+          moverId: true,
+        },
+      },
+    },
+  });
+
+  if (!confirmedQuote) {
+    throw new Error("확정된 견적을 찾을 수 없습니다.");
+  }
+
   return prismaClient.review.create({
     data: {
       confirmedQuoteId,
       customerId,
-      moverId,
+      moverId: confirmedQuote.quote.moverId, // moverId 추가
       rating,
       content,
       imageUrl,
@@ -104,10 +118,20 @@ const createReview = (
 
 // 확정 견적 조회 함수 추가 (핵심 validation: 해당 고객이 이 확정 견적에 대해 리뷰를 쓸 수 있는지 확인)
 const findConfirmedQuote = (confirmedQuoteId: number, customerId: number) => {
-  return prismaClient.confirmedQuote.findUnique({
+  return prismaClient.confirmedQuote.findFirst({
     where: {
       id: confirmedQuoteId,
-      customerId: customerId,
+      movingRequest: {
+        customerId: customerId,
+      },
+    },
+    select: {
+      id: true,
+      quote: {
+        select: {
+          moverId: true,
+        },
+      },
     },
   });
 };
@@ -137,46 +161,37 @@ const getAvailableReviewList = (
 ) => {
   const today = new Date();
 
-  return prismaClient.confirmedQuote.findMany({
-    where: {
-      customerId,
-      movingRequest: {
-        movingDate: {
-          lt: today,
-        },
-      },
-      review: {
-        none: {},
-      },
-    },
+  return prismaClient.review.findMany({
+    where: { customerId },
     take: pageSize,
     skip: (pageNum - 1) * pageSize,
     select: {
       id: true,
-      movingRequest: {
-        select: {
-          service: true,
-          isDesignated: true,
-          movingDate: true,
-        },
-      },
-      quote: {
-        select: {
-          cost: true,
-        },
-      },
+      imageUrl: true,
       mover: {
+        // 여기에 mover 정보 추가
         select: {
-          imageUrl: true,
           nickname: true,
         },
       },
-    },
-    orderBy: {
-      movingRequest: {
-        movingDate: "desc",
+      confirmedQuote: {
+        select: {
+          movingRequest: {
+            select: {
+              service: true,
+              isDesignated: true,
+              movingDate: true,
+            },
+          },
+          quote: {
+            select: {
+              cost: true,
+            },
+          },
+        },
       },
     },
+    orderBy: { createAt: "desc" },
   });
 };
 
