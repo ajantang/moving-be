@@ -1,7 +1,6 @@
 import { getRandomInt } from "./utils";
 import { getCustomers } from "./customer";
 import { services } from "./service";
-import { getRandomElements } from "./utils";
 
 export async function getMovingRequests() {
   const customers = await getCustomers();
@@ -28,11 +27,6 @@ export async function getMovingRequests() {
         requestCount: getRandomInt(0, 5),
         designateCount: getRandomInt(0, 3),
         isDesignated: Math.random() > 0.75,
-        region: getRandomElements(
-          services.map((service) => service.code),
-          1,
-          3
-        )[1] as number,
         createAt: new Date(),
         updateAt: new Date(),
       };
