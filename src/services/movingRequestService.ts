@@ -186,8 +186,16 @@ const getMovingRequestListByMover = async (
     in: regions,
   };
 
+  const countCondition = {
+    quote: whereCondition.quote,
+    OR: whereCondition.OR,
+    AND: whereCondition.AND,
+    movingDate: whereCondition.movingDate,
+    region: whereCondition.region,
+  };
+
   const serviceCountsPromise =
-    movingRequestRepository.getMovingRequestCountByServices();
+    movingRequestRepository.getMovingRequestCountByServices(countCondition);
 
   const totalCountPromise = movingRequestRepository.getTotalCount();
   const designatedCountPromise =

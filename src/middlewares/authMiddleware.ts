@@ -3,6 +3,8 @@
 import { Request, Response, NextFunction } from "express";
 import passport from "passport";
 import CustomError from "../utils/interfaces/customError";
+import userRepository from "../repositorys/userRepository";
+import { FRONTEND_URL } from "../env";
 
 interface authUser {
   id: number;
@@ -52,4 +54,71 @@ export const optionalJwtAuth = (
       }
     }
   )(req, res, next);
+};
+
+export const isCustomer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user as {
+    id: number;
+    customerId?: number;
+    moverId?: number;
+  };
+  const findUser = await userRepository.findById(user.id);
+  if (!findUser) {
+    const error: CustomError = new Error("Unauthorized");
+    error.status = 403;
+    error.data = {
+      message: "유효하지 않은 사용자입니다.",
+    };
+    return next(error);
+  }
+
+  if (!user?.customerId) {
+    const error: CustomError = new Error("Unauthorized");
+    error.status = 403;
+    error.data = {
+      message: "고객 프로필을 먼저 등록해주세요",
+      redirectUrl: FRONTEND_URL + "/me/profile",
+      redirect: true,
+    };
+    return next(error);
+  }
+
+  next();
+};
+
+export const isMover = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user as {
+    id: number;
+    customerId?: number;
+    moverId?: number;
+  };
+  const findUser = await userRepository.findById(user.id);
+  if (!findUser) {
+    const error: CustomError = new Error("Unauthorized");
+    error.status = 403;
+    error.data = {
+      message: "유효하지 않은 사용자입니다.",
+    };
+    return next(error);
+  }
+  if (!user?.moverId) {
+    const error: CustomError = new Error("Unauthorized");
+    error.status = 403;
+    error.data = {
+      message: "기사 프로필을 먼저 등록해 주세요.",
+      redirectUrl: FRONTEND_URL + "/mover/profile",
+      redirect: true,
+    };
+    return next(error);
+  }
+
+  next();
 };

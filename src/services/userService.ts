@@ -116,7 +116,12 @@ const getUser = async (userId: number) => {
   }
 }; //imageUrl: object 타입으로 반환하지 않고 string 타입으로 1개 반환
 
+const getUserById = async (userId: number) => {
+  return await userRepository.findByUserId(userId);
+};
+
 export default {
   updateUser,
   getUser,
+  getUserById,
 };

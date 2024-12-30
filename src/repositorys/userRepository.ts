@@ -47,6 +47,21 @@ const findByEmail = (email: string) => {
   });
 };
 
+const findByUserId = (userId: number) => {
+  return prismaClient.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      customer: {
+        select: { id: true },
+      },
+      mover: {
+        select: { id: true },
+      },
+    },
+  });
+};
+
 const findById = (userId: number) => {
   return prismaClient.user.findUnique({
     where: { id: userId },
@@ -258,6 +273,7 @@ export default {
   createUser,
   getUserType,
   getCustomer,
+  findByUserId,
   getMover,
   updateUser,
   findById,

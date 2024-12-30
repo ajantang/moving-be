@@ -5,6 +5,7 @@ import cookieConfig from "../config/cookie.config";
 import createToken, { Payload } from "../utils/token.utils";
 import upload from "../utils/multer";
 import passport from "passport";
+import userService from "../services/userService";
 
 const router = Router();
 
@@ -140,7 +141,18 @@ router.post(
   asyncHandle(async (req, res, next) => {
     try {
       const user = req.user as Payload;
-      const accessToken = createToken(user, "access");
+      const userData = await userService.getUserById(user.id);
+      if (!userData) {
+        return res.status(400).send({ message: "유효하지 않은 사용자입니다." });
+      }
+      const accessToken = createToken(
+        {
+          id: userData.id,
+          customer: userData.customer,
+          mover: userData.mover,
+        },
+        "access"
+      );
       res.cookie("accessToken", accessToken, cookieConfig.accessTokenOption);
       res.status(204).send();
     } catch (error) {

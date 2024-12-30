@@ -3,7 +3,11 @@ import { asyncHandle } from "../utils/asyncHandler";
 import express from "express";
 import checkBoolean from "../utils/checkBoolean";
 import passport from "passport";
-import { optionalJwtAuth } from "../middlewares/authMiddleware";
+import {
+  isCustomer,
+  isMover,
+  optionalJwtAuth,
+} from "../middlewares/authMiddleware";
 import upload from "../utils/multer";
 import { Payload } from "../utils/token.utils";
 
@@ -66,10 +70,10 @@ router.get(
 router.get(
   "/my-profile",
   passport.authenticate("jwt", { session: false }),
+  isMover,
   asyncHandle(async (req, res, next) => {
     try {
       const { moverId } = req.user as { moverId: number };
-      console.log(moverId);
       const mover = await moverService.getMover(moverId);
       return res.status(200).send(mover);
     } catch (error) {
@@ -82,6 +86,7 @@ router.get(
 router.get(
   "/favorite-list",
   passport.authenticate("jwt", { session: false }),
+  isCustomer,
   asyncHandle(async (req, res, next) => {
     try {
       const { limit = "10", nextCursorId = "0" } = req.query;
@@ -127,6 +132,7 @@ router.get(
 router.post(
   "/:id/favorite",
   passport.authenticate("jwt", { session: false }),
+  isCustomer,
   asyncHandle(async (req, res, next) => {
     try {
       const { customerId } = req.user as { customerId: number };
@@ -146,6 +152,7 @@ router.post(
 router.delete(
   "/:id/favorite",
   passport.authenticate("jwt", { session: false }),
+  isCustomer,
   asyncHandle(async (req, res, next) => {
     try {
       const { customerId } = req.user as { customerId: number };

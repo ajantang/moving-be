@@ -23,8 +23,8 @@ const clearCookieOption: CookieOptions = {
 
 const sessionOption: CookieOptions = {
   httpOnly: true,
-  secure: false,
-  sameSite: "lax",
+  secure: true,
+  sameSite: "none",
   maxAge: 1000 * 60 * 60, //1시간
 };
 

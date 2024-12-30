@@ -4,6 +4,7 @@ import { asyncHandle } from "../utils/asyncHandler";
 import movingRequest from "../middlewares/validations/movingRequest";
 import checkBoolean from "../utils/checkBoolean";
 import passport from "passport";
+import { isCustomer, isMover } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 
@@ -11,6 +12,7 @@ const router = express.Router();
 router.get(
   "/by-mover",
   passport.authenticate("jwt", { session: false }),
+  isMover,
   asyncHandle(async (req, res, next) => {
     try {
       const { moverId } = req.user as { moverId: number };
@@ -60,6 +62,7 @@ router.get(
 router.get(
   "/by-customer",
   passport.authenticate("jwt", { session: false }),
+  isCustomer,
   asyncHandle(async (req, res, next) => {
     try {
       const { customerId } = req.user as { customerId: number };
@@ -82,6 +85,7 @@ router.get(
 router.get(
   "/:id/quotes",
   passport.authenticate("jwt", { session: false }),
+  isCustomer,
   asyncHandle(async (req, res, next) => {
     try {
       const { customerId } = req.user as { customerId: number };
@@ -104,6 +108,7 @@ router.get(
 router.get(
   "/pending-quotes",
   passport.authenticate("jwt", { session: false }),
+  isCustomer,
   asyncHandle(async (req, res, next) => {
     try {
       const { customerId } = req.user as { customerId: number };
@@ -121,6 +126,7 @@ router.get(
 router.post(
   "/",
   passport.authenticate("jwt", { session: false }),
+  isCustomer,
   movingRequest.createMovingRequestValidation, //유효성 검사
   asyncHandle(async (req, res, next) => {
     try {
@@ -150,6 +156,7 @@ router.post(
 router.post(
   "/:id/designated",
   passport.authenticate("jwt", { session: false }),
+  isCustomer,
   asyncHandle(async (req, res, next) => {
     try {
       const { id: moverId } = req.params;
@@ -172,6 +179,7 @@ router.post(
 router.delete(
   "/:id/designated",
   passport.authenticate("jwt", { session: false }),
+  isCustomer,
   asyncHandle(async (req, res, next) => {
     try {
       const { id: moverId } = req.params;

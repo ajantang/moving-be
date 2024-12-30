@@ -17,14 +17,17 @@ import customerRouter from "./controllers/customerController";
 import userRouter from "./controllers/userController";
 import reviewRouter from "./controllers/reviewController";
 import notificationRouter from "./controllers/notificationController";
-
 import confirmedQuoteRouter from "./controllers/confirmedQuoteController";
 import { scheduleNotification } from "./schedules/notifications";
 import { imageCleanup } from "./schedules/images";
+
 const app = express();
 
 //CORS 설정
-const allowedOrigins: string[] = ["http://localhost:3001"];
+const allowedOrigins: string[] = [
+  "http://localhost:3001",
+  "https://moving-fe-e1p7.vercel.app",
+];
 // CORS 설정
 const corsOptions: CorsOptions = {
   credentials: true,

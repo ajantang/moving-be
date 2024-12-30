@@ -10,7 +10,9 @@ interface CursorQueryString {
 interface WhereCondition {
   keyword?: string;
   OR?: object[];
-  services?: object;
+  AND?: object[];
+  quote?: object;
+  movingDate?: object;
 }
 
 interface OffsetQueryString {

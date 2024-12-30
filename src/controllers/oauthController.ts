@@ -47,7 +47,7 @@ router.get(
     res.cookie("accessToken", accessToken, cookieConfig.accessTokenOption);
     res.cookie("refreshToken", refreshToken, cookieConfig.refreshTokenOption);
 
-    res.redirect(process.env.FRONTEND_URL || "http://localhost:3000");
+    res.redirect(process.env.FRONTEND_URL || "http://localhost:3001");
   }
 );
 
@@ -87,7 +87,7 @@ router.get(
     res.cookie("accessToken", accessToken, cookieConfig.accessTokenOption);
     res.cookie("refreshToken", refreshToken, cookieConfig.refreshTokenOption);
 
-    res.redirect(process.env.FRONTEND_URL || "http://localhost:3000");
+    res.redirect(process.env.FRONTEND_URL || "http://localhost:3001");
   }
 );
 
@@ -113,14 +113,14 @@ router.get(
     res.cookie("accessToken", accessToken, cookieConfig.accessTokenOption);
     res.cookie("refreshToken", refreshToken, cookieConfig.refreshTokenOption);
 
-    res.redirect(process.env.FRONTEND_URL || "http://localhost:3000");
+    res.redirect(process.env.FRONTEND_URL || "http://localhost:3001");
   }
 );
 
 router.get("/kakao/signout", (req, res) => {
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
-  res.redirect(process.env.FRONTEND_URL || "http://localhost:3000");
+  res.redirect(process.env.FRONTEND_URL || "http://localhost:3001");
 });
 
 export default router;
